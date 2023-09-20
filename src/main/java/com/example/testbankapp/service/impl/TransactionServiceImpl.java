@@ -21,7 +21,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<Transaction> findAllTransactions(String name) {
-        return null;
+    public List<Transaction> findAllTransactionByAccountNumber(Long accountNumber) {
+        return repository.findByAccount_AccountNumber(accountNumber);
     }
 }

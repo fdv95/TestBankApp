@@ -22,6 +22,16 @@ public class AccountController {
 
     private final AccountService service;
 
+    @GetMapping("/{accountNumber}")
+    public ResponseEntity<Account> findByAccountNumber(@PathVariable Long accountNumber) {
+        return ResponseEntity.ok(service.findAccountNumber(accountNumber));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Account>> findByAll() {
+        return ResponseEntity.ok(service.findAll());
+    }
+
     @PostMapping("/create")
     public ResponseEntity<Account> create(@RequestBody @Valid AccountDto accountDto) {
         return new ResponseEntity<>(service.createAccount(accountDto), HttpStatus.CREATED);

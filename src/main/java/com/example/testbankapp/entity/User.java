@@ -22,11 +22,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "name", unique = true) // todo должно быть уникальным типа username???
+    @Column(name = "name", unique = true)
     String name;
-
-    @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.DETACH, CascadeType.MERGE,
-            CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
-    List<Account> accounts;
 }

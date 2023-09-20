@@ -4,21 +4,20 @@ import com.example.testbankapp.dto.AccountDto;
 import com.example.testbankapp.dto.DepositDto;
 import com.example.testbankapp.dto.TransferDto;
 import com.example.testbankapp.entity.Account;
+import com.example.testbankapp.entity.Transaction;
+import com.example.testbankapp.entity.User;
 import com.example.testbankapp.repository.AccountRepository;
 import com.example.testbankapp.repository.TransactionRepository;
 import com.example.testbankapp.repository.UserRepository;
 import com.example.testbankapp.service.AccountService;
-import com.example.testbankapp.entity.User;
-import com.example.testbankapp.entity.Transaction;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -26,9 +25,20 @@ import java.util.Random;
 @AllArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-    private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+
+    @Override
+    public Account findAccountNumber(Long accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber).orElseThrow(() ->
+                new EntityNotFoundException("Аккаунт с указанным номером не найден"));
+    }
+
+    @Override
+    public List<Account> findAll() {
+        return accountRepository.findAll();
+    }
 
     @Override
     @Transactional
@@ -45,26 +55,17 @@ public class AccountServiceImpl implements AccountService {
         Optional<User> optionalUser = userRepository.findByName(userName);
         User user;
 
-        if (optionalUser.isEmpty()) {
-            user = User.builder()
-                    .name(userName)
-                    .accounts(new ArrayList<>())
-                    .build();
+        user = optionalUser.orElseGet(() -> User.builder()
+                .name(userName)
+                .build());
 
-            account.setUser(user);
-        } else {
-            user = optionalUser.get();
-            user.getAccounts().add(account);
-
-            account.setUser(user);
-        }
-
+        account.setUser(user);
         return accountRepository.save(account);
     }
 
     @Override
     @Transactional
-    public Transaction deposit(DepositDto depositDto) { // pinCode, accountNumber, amount
+    public Transaction deposit(DepositDto depositDto) {
 
         Account account = accountRepository.findByAccountNumber(depositDto.getAccountNumber()).orElseThrow(() ->
                 new EntityNotFoundException("Аккакунт с указанным номером не найден")
@@ -84,8 +85,7 @@ public class AccountServiceImpl implements AccountService {
                 .account(account)
                 .build();
 
-        transactionRepository.save(transaction);
-        return transaction;
+        return transactionRepository.save(transaction);
     }
 
     @Override
@@ -106,11 +106,10 @@ public class AccountServiceImpl implements AccountService {
         Transaction transaction = Transaction.builder()
                 .transactionDate(LocalDateTime.now())
                 .amount(depositDto.getAmount())
-//                .account(account)
+                .account(account)
                 .build();
 
-        transactionRepository.save(transaction);
-        return transaction;
+        return transactionRepository.save(transaction);
     }
 
 
@@ -137,16 +136,13 @@ public class AccountServiceImpl implements AccountService {
             throw new IllegalArgumentException("Введен некорректный пин-код");
         }
 
-
         Transaction transaction = Transaction.builder()
                 .transactionDate(LocalDateTime.now())
                 .amount(transferDto.getAmount())
-//                .account(account)
+                .account(sourceAccount)
                 .build();
 
-        transactionRepository.save(transaction);
-
-        return transaction;
+        return transactionRepository.save(transaction);
     }
 
     // todo генерирует 10-значный номер. Заменить на UUID?
